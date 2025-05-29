@@ -6,8 +6,12 @@ Se estará subiendo la actividad.
 ```
 # Bajarlo todo
 kubectl delete namespace singletone
+
 # Crearlo todo
 ./build-and-deploy.sh
+
+# Observar pods corriendo
+kubectl get pods -n singletone
 ```
 
 **Verificar el frontend**
