@@ -70,11 +70,10 @@ app.post('/api/users', async (req, res) => {
     }
 });
 
-// Iniciar servidor
 setTimeout(() => {
     initDB().then(() => {
         app.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Backend corriendo en puerto ${PORT}`);
         });
     });
-}, 5000); // 5 segundos de delay
+}, 5000);
