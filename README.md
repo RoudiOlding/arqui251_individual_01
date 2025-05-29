@@ -12,6 +12,9 @@ kubectl delete namespace singletone
 
 # Observar pods corriendo
 kubectl get pods -n singletone
+
+# Obtener todos los datos
+kubectl get all -n singletone
 ```
 
 **Verificar el frontend**
