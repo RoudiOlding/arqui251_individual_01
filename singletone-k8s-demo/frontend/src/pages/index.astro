@@ -1,0 +1,142 @@
+---
+let users: any[] = [];
+---
+
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Singletone - Demo Microservicios</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #1a1a1a; color: white; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .users-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; background: #2a2a2a; border-radius: 8px; overflow: hidden; margin-top: 20px; margin-bottom: 40px;}
+        .users-table th, .users-table td { padding: 15px; text-align: left; border-bottom: 1px solid #3a3a3a; }
+        .users-table th { background: #ff6b6b; color: white; font-weight: bold; }
+        .users-table tr:last-child td { border-bottom: none; }
+        .users-table tr:hover { background: #333; }
+        .user-section { margin-top: 40px;}
+        .add-form { background: #2a2a2a; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .form-group { margin-bottom: 15px; }
+        input, button { padding: 10px; border-radius: 4px; border: none; }
+        input { background: #1a1a1a; color: white; width: 100%; }
+        button { background: #ff6b6b; color: white; cursor: pointer; }
+        button:hover { background: #ff5252; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Singletone</h1>
+            <p>Demo de Microservicios con Kubernetes</p>
+        </div>
+        
+        <div class="add-form">
+            <h2>Agregar Usuario</h2>
+            <form id="userForm">
+                <div class="form-group">
+                    <input type="text" id="name" placeholder="Nombre completo" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="nickname" placeholder="Nickname" required>
+                </div>
+                <button type="submit">Agregar Usuario</button>
+            </form>
+        </div>
+        
+        <div class="users-section">
+            <h2>Usuarios Registrados (<span id="users-count">0</span>)</h2>
+            <table class="users-table" id="users-list">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Nickname</th>
+                        <th>Plan</th>
+                        <th>Fecha de Registro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center;">Cargando usuarios...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function loadUsers() {
+            try {
+                const response = await fetch('http://localhost:3001/api/users');
+                const users = await response.json();
+                
+                const usersCountElement = document.getElementById('users-count');
+                const usersListElement = document.getElementById('users-list');
+                
+                if (usersCountElement) {
+                    usersCountElement.textContent = users.length;
+                }
+                
+                if (usersListElement) {
+                    const tbody = usersListElement.querySelector('tbody');
+                    if (tbody) {
+                        if (users.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No hay usuarios registrados</td></tr>';
+                        } else {
+                            tbody.innerHTML = users.map(user => `
+                                <tr>
+                                    <td>${user.name}</td>
+                                    <td>${user.email}</td>
+                                    <td>${user.nickname}</td>
+                                    <td>${user.plan}</td>
+                                    <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                                </tr>
+                            `).join('');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando usuarios:', error);
+                const usersListElement = document.getElementById('users-list');
+                if (usersListElement) {
+                    const tbody = usersListElement.querySelector('tbody');
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #ff6b6b;">Error cargando usuarios</td></tr>';
+                    }
+                }
+            }
+        }
+
+        loadUsers();
+
+        document.getElementById('userForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                name: (document.getElementById('name') as HTMLInputElement)?.value,
+                email: (document.getElementById('email') as HTMLInputElement)?.value,
+                nickname: (document.getElementById('nickname') as HTMLInputElement)?.value
+            };
+            try {
+                const response = await fetch('http://localhost:3001/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error al agregar usuario');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión');
+            }
+        });
+    </script>
+</body>
+</html>
